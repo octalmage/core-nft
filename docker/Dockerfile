@@ -1,6 +1,7 @@
 ARG version=v0.5.9-oracle
 
 FROM terramoney/core:${version}
+USER root
 
 ARG chainid=columbus-5
 
