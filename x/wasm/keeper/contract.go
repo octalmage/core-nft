@@ -426,7 +426,7 @@ func (k Keeper) queryToContract(ctx sdk.Context, contractAddress sdk.AccAddress,
 	defer telemetry.MeasureSince(time.Now(), "wasm", "contract", "query-smart")
 	ctx.GasMeter().ConsumeGas(types.InstantiateContractCosts(len(queryMsg)), "Loading CosmWasm module: query")
 
-	codeInfo, contractStorePrefix, err := k.getContractDetails(ctx, contractAddress)
+	codeInfo, contractStorePrefix, err := k.getContractDetailsQuery(ctx, contractAddress)
 	if err != nil {
 		return nil, err
 	}
