@@ -422,11 +422,49 @@ func (k Keeper) queryToStore(ctx sdk.Context, contractAddress sdk.AccAddress, ke
 	return prefixStore.Get(key)
 }
 
-func (k Keeper) queryToContract(ctx sdk.Context, contractAddress sdk.AccAddress, queryMsg []byte) ([]byte, error) {
+func (k Keeper) queryToContractBreaking(ctx sdk.Context, contractAddress sdk.AccAddress, queryMsg []byte) ([]byte, error) {
 	defer telemetry.MeasureSince(time.Now(), "wasm", "contract", "query-smart")
 	ctx.GasMeter().ConsumeGas(types.InstantiateContractCosts(len(queryMsg)), "Loading CosmWasm module: query")
 
 	codeInfo, contractStorePrefix, err := k.getContractDetailsQuery(ctx, contractAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	env := types.NewEnv(ctx, contractAddress)
+
+	// assert and increase query depth
+	ctx, err = assertAndIncreaseQueryDepth(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	queryResult, gasUsed, err := k.wasmVM.Query(
+		codeInfo.CodeHash,
+		env,
+		queryMsg,
+		contractStorePrefix,
+		k.getCosmWasmAPI(ctx),
+		k.querier.WithCtx(ctx),
+		k.getWasmVMGasMeter(ctx),
+		k.getWasmVMGasRemaining(ctx),
+		types.JSONDeserializationWasmGasCost,
+	)
+
+	// add types.GasMultiplier to occur out of gas panic
+	k.consumeWasmVMGas(ctx, gasUsed+types.GasMultiplier, "Contract Query")
+	if err != nil {
+		return nil, sdkerrors.Wrap(types.ErrContractQueryFailed, err.Error())
+	}
+
+	return queryResult, err
+}
+
+func (k Keeper) queryToContract(ctx sdk.Context, contractAddress sdk.AccAddress, queryMsg []byte) ([]byte, error) {
+	defer telemetry.MeasureSince(time.Now(), "wasm", "contract", "query-smart")
+	ctx.GasMeter().ConsumeGas(types.InstantiateContractCosts(len(queryMsg)), "Loading CosmWasm module: query")
+
+	codeInfo, contractStorePrefix, err := k.getContractDetails(ctx, contractAddress)
 	if err != nil {
 		return nil, err
 	}

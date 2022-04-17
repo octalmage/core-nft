@@ -129,7 +129,7 @@ func (querier WasmQuerier) Query(ctx sdk.Context, request wasmvmtypes.QueryReque
 			return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, request.Wasm.Smart.ContractAddr)
 		}
 
-		return querier.keeper.queryToContract(ctx, addr, request.Wasm.Smart.Msg)
+		return querier.keeper.queryToContractBreaking(ctx, addr, request.Wasm.Smart.Msg)
 	}
 
 	if request.Wasm.Raw != nil {
