@@ -431,6 +431,8 @@ func (k Keeper) queryToContractBreaking(ctx sdk.Context, contractAddress sdk.Acc
 		return nil, err
 	}
 
+	k.Logger(ctx).Error("queryToContractBreaking", "code_id", codeInfo.CodeID)
+
 	env := types.NewEnv(ctx, contractAddress)
 
 	// assert and increase query depth
