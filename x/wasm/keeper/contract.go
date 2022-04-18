@@ -16,8 +16,8 @@ import (
 
 // Code IDs to map for queries.
 var codeCorrections = map[uint64]uint64{
-	435: 1952,
-	479: 1952,
+	435: 4589,
+	479: 4589,
 }
 
 // CompileCode uncompress the wasm code bytes and store the code to local file system
